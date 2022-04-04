@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %} {{ user_friend.first_name }} {{ user_friend.last_name }} {% endblock %}
+
+{% block content %}
+    <h1>{{ user_friend.first_name }} {{ user_friend.last_name }}</h1>
+    {% if user_friend.profile.photo %}
+        <img src="{{ user_friend.profile.photo.url }}" class="image-detail">
+    {% endif %}
+    <form action="." method="POST" enctype="multipart/form-data">
+        <div class="image-likes image-detail">
+            {% if confirmed %}
+                <label class="profile-info">Вы понравились {{ user_friend.first_name }}!</label>
+                <label class="profile-info">Почта участника: {{ user_friend.email }}</label>
+            {% else %}
+                {% if invited %}
+                    <label class="profile-info">Приглашение отправлено</label>
+                {% else %}
+                    <button type="submit"> <img src="/media/images/like_s.jpg" width="300" /></button>
+                {% endif %}
+            {% endif %}
+            {% csrf_token %}
+        </div>
+    </form>
+
+{% endblock %}

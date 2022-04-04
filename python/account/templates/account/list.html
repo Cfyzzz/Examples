@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Список участников{% endblock %}
+
+{% block content %}
+{% load thumbnail %}
+
+<h1>Список участников</h1>
+<form method="get">
+    {{ filter_profile.form.as_p }}
+    <input type="submit" value="Поиск"/>
+</form>
+
+<div id="people-list">
+    {% for profile in filter_profile.qs %}
+    <div style="display:flex;">
+        <div class="info">
+            {% thumbnail profile.photo "300x300" crop="100%" as im %}
+            <a href="{% url 'match' user.id %}">
+                <img src="{{ im.url }}">
+            </a>
+            {% endthumbnail %}
+        </div>
+        <div class="info">
+            <a href="{% url 'match' user.id %}" class="title">
+                {{ profile.user.first_name }} {{ profile.user.last_name }}
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

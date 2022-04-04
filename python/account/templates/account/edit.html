@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Рекдактировать профиль{% endblock %}
+
+{% block content %}
+    <h1>Изменить свой профиль</h1>
+    {% if user.profile.photo %}
+        <img src="{{ user.profile.photo.url }}" class="image-detail">
+    {% endif %}
+    <p>Форма для редактирования профиля:</p>
+    <form action="." method="post" enctype="multipart/form-data">
+        {{ user_form.as_p }}
+        {{ profile_form.as_p }}
+        {% csrf_token %}
+        <p><input type="submit" value="Save changes"></p>
+    </form>
+{% endblock %}
