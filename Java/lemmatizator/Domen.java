@@ -1,20 +1,24 @@
+package ru.nedovizin;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.RecursiveAction;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 
 public class Domen extends RecursiveAction {
     private URL url;
+    private int siteId;
 
     public Domen(URL url) {
         this.url = url;
@@ -25,6 +29,19 @@ public class Domen extends RecursiveAction {
             this.url = new URL(address);
         } catch (MalformedURLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public Domen(String address, int siteId) {
+        this(address);
+        this.siteId = siteId;
+    }
+
+    public static Domen getSite(String address) {
+        synchronized (DBConnection.getConnection()) {
+            // TODO: 28.03.2022 Второй параметр - это значение name
+            DBConnection.addSite(address, address);
+            return new Domen(address);
         }
     }
 
@@ -53,6 +70,8 @@ public class Domen extends RecursiveAction {
 
     @Override
     public void compute() {
+        List<String> lemmas;
+        List<String> tags;
         HashSet<String> set = new HashSet<>();
         List<Domen> subdomens = new ArrayList<>();
         try {
@@ -69,17 +88,18 @@ public class Domen extends RecursiveAction {
             Document doc = response.parse();
 
             if (response.statusCode() == 200) {
-                List<String> tags = getTags();
-                List<String> lemmas = new ArrayList<>();
+                tags = getTags();
                 for (String tag : tags) {
                     Elements tagsText = doc.getElementsByTag(tag);
                     for (Element tagText : tagsText) {
                         String text = tagText.text().toLowerCase(Locale.ROOT);
-                        lemmas.addAll(MyLematizator.getWordsBaseForms(text));
+                        lemmas = MyLematizator.getWordsBaseForms(text);
+                        synchronized (DBConnection.getConnection()) {
+                            DBConnection.addLemmas(lemmas);
+                            DBConnection.addIndexes(lemmas, url.getPath(), tag);
+                        }
                     }
                 }
-                DBConnection.addLemms(lemmas);
-                // TODO: 11.03.2022 Сделать пункт 4.5 Возможно через Pair<tag, lemma>
             }
 
             Elements tagsA = doc.select("a");
@@ -95,7 +115,7 @@ public class Domen extends RecursiveAction {
                     set.add(href);
                     Domen subdomen = new Domen(href);
                     subdomens.add(subdomen);
-                    Thread.sleep(200);
+                    Thread.sleep(5000);
                     subdomen.fork();
                 }
             }

@@ -1,16 +1,17 @@
+package ru.nedovizin;
+
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class MyLematizator {
     private static LuceneMorphology luceneMorph;
 
-    public static List<String> getWordsBaseForms(String text) throws IOException {
+    public synchronized static List<String> getWordsBaseForms(String text) throws IOException {
         luceneMorph = new RussianLuceneMorphology();
         List<String> result = new ArrayList<>();
 

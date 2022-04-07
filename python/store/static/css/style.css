@@ -1,0 +1,39 @@
+table .btn-cart{
+    display: none;
+}
+
+table tr{
+    position: relative;
+}
+
+table tr:hover .btn-cart{
+    position: absolute;
+    top:10%;
+    right: 10px;
+    display: block;
+}
+
+table tr:hover{
+    background-color: yellow;
+}
+
+#all_types{
+    padding-top: 50px;
+}
+#select_types{
+    width: 100%;
+    height: 30px;
+}
+option {
+    height: 30px;
+    line-height: 30px;
+}
+.editOption{
+    width: 90%;
+    height: 24px;
+    position: relative;
+    top: -30px;
+}
+.component_field_label{
+    width: 100%;
+}

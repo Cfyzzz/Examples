@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+
+{% block functional %}
+<label for="filter">Фильтр:</label>
+<input id="filter" type="text" placeholder="Поиск..."">
+{% endblock %}
+
+{% block title %} {{ type_comp['type'] }} {% endblock %}
+{% block content_title %} {{ type_comp['type'] }} {% endblock %}
+{% block content %}
+
+<script type=text/javascript>
+
+function myFunction(filterName, column) {
+
+  // Declare variables
+  var input2, filter, table, tr, td, i, txtValue;
+  input2 = document.getElementById(filterName);
+  filter = input2.value.toUpperCase();
+  table = document.getElementById("tableComponents");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    tr[i].style.display = "";
+    td = tr[i].getElementsByTagName("td")[column];
+    if (td) {
+      txtValue = td.innerText.trim().substr(0, 20).replace(/^\s+|\s+$/g, '');
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+};
+
+$(document).ready(function(){
+    $body = $(document)[0].body;
+
+  $("#filter").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $("table tr.row-table").filter(function() {
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+  });
+
+  $(".component_field_edit").keydown(function(e){
+        var code = e.key;
+        if(code==="Enter") {
+            updateFieldLabel(this);
+            e.preventDefault();
+        }
+    });
+
+  $(".component_field_edit").focusout(function() {
+    updateFieldLabel(this);
+  });
+
+    $('#decrementStoreModal').on('shown.bs.modal', function() {
+      $('#decrementNumber').val("");
+      $('#decrementNumber').focus();
+    });
+
+    $('#incrementStoreModal').on('shown.bs.modal', function() {
+      $('#incrementNumber').val("");
+      $('#incrementNumber').focus();
+    });
+
+    $("#filterDesignation").on("keyup", function(event) {
+        event.preventDefault();
+        myFunction("filterDesignation", 0);
+    });
+
+    $("#filterPackage").on("keyup", function(event) {
+        event.preventDefault();
+        myFunction("filterPackage", 5);
+    });
+});
+
+function updateFieldLabel(elem) {
+    var value = $(elem).val();
+    var $label = $(elem).parent().children(".component_field_label");
+    if (value==null || value.trim()=="") {
+        $label.text("-");
+    } else {
+        $label.text(value);
+    };
+    $label.show();
+    $(elem).hide();
+    sendElementToServer($(elem).parent().parent());
+}
+
+function saveId(id, op) {
+    $("#componentId").val(id);
+    $("#componentOp").val(op);
+};
+
+function deleteComponent(id, op, name) {
+    saveId(id, op);
+    $("#nameComponentForDelete").text(name);
+};
+
+function editFieldComponent(name, id, value="") {
+    if (value == "") {
+        value = $("#" + name + "_label_" + id).text().trim();
+    };
+    if (value=="-") {
+        value="";
+    };
+    $("#" + name + "_edit_" + id).val(value);
+    $("#" + name + "_edit_" + id).show();
+    $("#" + name + "_edit_" + id).focus();
+    $("#" + name + "_label_" + id).hide();
+};
+
+function fillField(name, id) {
+    var value = $("#" + name + "_label_" + id).val();
+    if (value=="") {
+        $("#" + name + "_label_" + id).text(" - ");
+    }
+};
+
+function sendElementToServer($parent) {
+    var id = $parent.attr('data-id');
+    $data = JSON.stringify({
+        "id":id,
+        "designation":$("#designation_label_"+id).text().trim(),
+        "box":$("#box_label_"+id).text().trim(),
+        "address":$("#address_label_"+id).text().trim(),
+        "quantity":$("#quantity_label_"+id).text().trim(),
+        "description":$("#description_label_"+id).text().trim(),
+        "package":$("#package_label_"+id).text().trim(),
+        "datasheet":$("#datasheet_label_"+id).text().trim(),
+        "type":"{{ type_comp['type'] }}"
+    });
+
+    $.ajax({
+        url: '/components',
+        dataType: 'json',
+        type: 'post',
+        contentType: 'application/json',
+        data: $data,
+        processData: false
+    });
+};
+
+function getValidValueFromText($elem) {
+    var text = $elem.text();
+    if (text=="-") {
+        text = "";
+    };
+    return text;
+};
+</script>
+
+<form method="post">
+    <table class="table" id="tableComponents">
+        <tr>
+            <th><input id="filterDesignation" type="text" placeholder="Поиск..."></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th>
+                <select id="filterPackage" onchange="myFunction('filterPackage', 5);">
+                    <option value=""></option>
+                    {% for package in packages %}
+                    <option value="{{ package['package'] }}">{{ package['package'] }}</option>
+                    {% endfor %}
+                </select>
+            </th>
+            <th></th>
+            <th></th>
+        </tr>
+        <tr>
+            <th>Наименование</th>
+            <th>№ Ящика</th>
+            <th>Ячейка</th>
+            <th>Кол-во</th>
+            <th>Описание</th>
+            <th>Корпус</th>
+            <th>DataSheet</th>
+            <th class="col-2"></th>
+        </tr>
+        {% for component in components|sort(attribute='designation') %}
+        <tr class="row-table" data-id="{{ component['id'] }}">
+            <td>
+                <input type="text" id="designation_edit_{{ component['id'] }}" class="component_field_edit" style="display:none" />
+                <div class="component_field_label" id="designation_label_{{ component['id'] }}" onclick="editFieldComponent('designation', {{ component['id'] }});">
+                    {{ component['designation'] }}
+                </div>
+            </td>
+            <td>
+                <input type="text" id="box_edit_{{ component['id'] }}" class="component_field_edit" style="display:none" />
+                <div class="component_field_label" id="box_label_{{ component['id'] }}" onclick="editFieldComponent('box', {{ component['id'] }});">
+                    {{ component['box'] }}
+                </div>
+            </td>
+            <td>
+                <input type="text" id="address_edit_{{ component['id'] }}" class="component_field_edit" style="display:none" />
+                <div class="component_field_label" id="address_label_{{ component['id'] }}" onclick="editFieldComponent('address', {{ component['id'] }});">
+                    {{ component['address'] }}
+                </div>
+            </td>
+            <td>
+                <input type="text" id="quantity_edit_{{ component['id'] }}" class="component_field_edit" style="display:none" />
+                <div class="component_field_label" id="quantity_label_{{ component['id'] }}" onclick="editFieldComponent('quantity', {{ component['id'] }});">
+                    {{ component['quantity'] }}
+                </div>
+            </td>
+            <td>
+                <input type="text" id="description_edit_{{ component['id'] }}" class="component_field_edit" style="display:none" />
+                <div class="component_field_label" id="description_label_{{ component['id'] }}" onclick="editFieldComponent('description', {{ component['id'] }});">
+                    {% if component['description'] == "" %}
+                      -
+                    {% else %}
+                    {{ component['description'] }}
+                    {% endif %}
+                </div>
+            </td>
+            <td onclick="fillField('package', {{ component['id'] }});">
+                <select name="package_{{ component['id'] }}" id="package_edit_{{ component['id'] }}" class="component_field_edit" style="display:none">
+                    {% for package in packages %}
+                    <option value="{{ package['package'] }}">{{ package['package'] }}</option>
+                    {% endfor %}
+                    <option value=""></option>
+                </select>
+                <div class="component_field_label" id="package_label_{{ component['id'] }}" onclick="editFieldComponent('package', {{ component['id'] }});">
+                    {% if component['package'] == None %}
+                      -
+                    {% else %}
+                    {{ component['package'] }}
+                    {% endif %}
+                </div>
+            </td>
+            <td class="col-2">
+                <input type="text" id="datasheet_edit_{{ component['id'] }}" class="component_field_edit" style="display:none" />
+                <div class="component_field_label" id="datasheet_label_{{ component['id'] }}">
+                    {% if component['datasheet'] == None or component['datasheet'] == "-"%}
+                     <div  onclick="editFieldComponent('datasheet', {{ component['id'] }}, '{{ component['datasheet'] }}');">
+                         -
+                     </div>
+                    {% else %}
+                    <div  onclick="editFieldComponent('datasheet', {{ component['id'] }}, '{{ component['datasheet'] }}');">
+                        Перейти по
+                    </div>
+                    <a href="{{ component['datasheet'] }}"> Ссылке</a>
+                    {% endif %}
+                </div>
+            </td>
+            <td>
+                <div class="btn-cart btn-group" role="group" aria-label="Cart action">
+                    <button type="button" id="btnDecrement" class="btn btn-secondary" data-toggle="modal"
+                            data-target="#decrementStoreModal" OnClick="saveId({{ component['id'] }}, 'dec');">Get
+                    </button>
+                    <button type="button" id="btnDelete" class="btn btn-secondary" data-toggle="modal"
+                            data-target="#deleteStoreModal" OnClick="deleteComponent({{ component['id'] }}, 'delete', '{{ component['designation'] }}');">Del
+                    </button>
+                    <button type="button" id="btnDIncrement" class="btn btn-secondary" data-toggle="modal"
+                            data-target="#incrementStoreModal" OnClick="saveId({{ component['id'] }}, 'inc');">Put
+                    </button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- Modal -->
+    <div class="modal fade" id="decrementStoreModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="decrementStoreModalLabel">Списание компонента</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                        <div class="form-outline">
+                            <label class="form-label" for="decrementNumber">Количество:</label>
+                            <input id="decrementNumber" type="number" class="form-control" size="3" name="numDec" min="1" max="999"
+                                   placeholder="1">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                            <button type="submit" class="btn btn-primary">Списать</button>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="incrementStoreModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="incrementStoreModalLabel">Добавление компонента</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                        <div class="form-outline">
+                            <label class="form-label" for="incrementNumber">Количество:</label>
+                            <input id="incrementNumber" type="number" class="form-control" size="3" name="numInc" min="1" max="999"
+                                   placeholder="1" >
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                            <button type="submit" class="btn btn-primary">Добавить</button>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteStoreModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteStoreModalLabel">Удаление компонента</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-outline">
+                        <label class="form-label">Подтвердите удаление компонента </label>
+                        <label class="form-label" id="nameComponentForDelete"/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Удалить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" name="componentId" id="componentId" >
+    <input type="hidden" name="componentOp" id="componentOp" >
+</form>
+
+{% endblock %}
