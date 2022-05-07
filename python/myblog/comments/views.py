@@ -4,6 +4,8 @@ from django.shortcuts import render, redirect
 
 
 class Comment:
+    """Комментарий"""
+    
     def __init__(self):
         self.pk = 0
         self.text = 0
@@ -12,6 +14,8 @@ class Comment:
 
 
 def home(request):
+    """Рендер демонстрационной страницы"""
+    
     headers = {'Content-Type': 'application/json'}
     url = request.build_absolute_uri("/api/comment/article/")
     resp = requests.get(url, headers=headers)
@@ -30,7 +34,13 @@ def home(request):
     return render(request, 'home.html', {'text': text})
 
 
-def processing_top_comments(article_pk, url, comments_article):
+def processing_top_comments(article_pk: int, url: str, comments_article: dict):
+    """Обработка первых комментариев к статье
+    
+    :param article_pk Идентификатор статьи
+    :param url Базовый путь к API на получение статьи
+    :param comments_article Словарь комментариев к статье. Этот метод продолжает заполнять этот словарь
+    """
     headers = {'Content-Type': 'application/json'}
     url_pk = url + str(article_pk)
     resp = requests.get(url_pk, headers=headers)
@@ -55,7 +65,14 @@ def processing_top_comments(article_pk, url, comments_article):
                                      comments_article=comments_article, level=3)
 
 
-def processing_rest_comments(pk, url, comments_article, level):
+def processing_rest_comments(pk: int, url: str, comments_article: dict, level: int):
+    """Обработка остальных комментариев к статье
+    
+    :param pk Идентификатор текущего комментария
+    :param url Базовый путь к API на получение комментария
+    :param comments_article Словарь комментариев к статье. Этот метод продолжает заполнять этот словарь
+    :param level Уровень вложенности текущего комментария
+    """
     headers = {'Content-Type': 'application/json'}
     url_pk = url + str(pk)
     resp = requests.get(url_pk, headers=headers)
@@ -80,7 +97,12 @@ def processing_rest_comments(pk, url, comments_article, level):
                                      comments_article=comments_article, level=rest_comment.level)
 
 
-def get_text_all_children(comment: Comment):
+def get_text_all_children(comment: Comment) -> str:
+    """Формирование представления рендера страницы с комментариями к статьям
+    
+    :param comment Комментарий для отображения
+    :result Представление рендера в виде строки
+    """
     text = f"{'..'*comment.level}{comment.text} pk={comment.pk}\n"
     for child_comment in comment.children:
         text += get_text_all_children(child_comment)
