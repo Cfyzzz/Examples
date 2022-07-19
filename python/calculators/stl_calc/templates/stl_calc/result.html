@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат</title>
+</head>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script type=text/javascript>
+$(document).ready(function(){
+    $body = $(document)[0].body;
+});
+
+function updateTable(typePlastic, heightLayer, volume) {
+    $data = JSON.stringify({
+        "type_plastic": typePlastic,
+        "volume": volume,
+        "height_layer": heightLayer,
+    });
+
+    $.ajax({
+        url: '/stl/api/calculation',
+        dataType: 'json',
+        type: 'post',
+        contentType: 'application/json',
+        data: $data,
+        processData: false,
+        success: function(plastic) {
+            $("table tr.row-table").children("#volume").text(volume.toFixed(1));
+            $("table tr.row-table").children("#weight").text((plastic.weight).toFixed(1));
+            $("table tr.row-table").children("#cost_detail").text(Math.round(plastic.cost_detail));
+        }
+    });
+};
+
+function refreshTable(){
+    var typePlastic = $('input[name="typePlastic"]:checked').val();
+    var heightLayer = $('input[name="heightLayer"]:checked').val();
+    updateTable(typePlastic, heightLayer, {{ volume }});
+};
+
+</script>
+<body>
+{% csrf_token %}
+<h1>Расчет детали</h1>
+<p>Тип пластика</p>
+<div onclick="refreshTable();">
+    {% for type_plastic in types_plastic %}
+    <input type="radio" id="type{{ type_plastic }}" name="typePlastic" value="{{ type_plastic }}">
+    <label for="type{{ type_plastic }}">{{ type_plastic }}</label>
+    {% endfor %}
+</div>
+<p>Высота слоя</p>
+<div onclick="refreshTable();">
+    {% for height_layer in height_layers %}
+    <input type="radio" id="height{{ height_layer }}" name="heightLayer" value="{{ height_layer }}">
+    <label for="height{{ height_layer }}">{{ height_layer }}</label>
+    {% endfor %}
+</div>
+<br>
+<table border="1">
+    <caption>Стоимость детали</caption>
+    <tr>
+        <th>Объём детали, см&#x00B3;</th>
+        <th>Вес, гр</th>
+        <th>Стоимость детали</th>
+    </tr>
+    <tr class="row-table"  align="center">
+        <td id="volume">{{ volume }}</td>
+        <td id="weight"></td>
+        <td id="cost_detail"></td>
+    </tr>
+</table>
+</body>
+</html>

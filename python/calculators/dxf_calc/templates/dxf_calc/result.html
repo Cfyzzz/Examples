@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат</title>
+</head>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script type=text/javascript>
+$(document).ready(function(){
+    $body = $(document)[0].body;
+    updateTotalCost();
+});
+
+function updateTotalCost() {
+    data = {
+        "material": $('#material').val().split(':')[0],
+        "thickness": $('#material').val().split(':')[1],
+        "token": '{{ token }}',
+    };
+
+    $.ajax({
+        url: '/dxf/api/total_cost',
+        type: 'get',
+        data: data,
+        success: function(response) {
+            cost = new Intl.NumberFormat('ru-RU').format(response.total_cost);
+            $("#total_cost").text(cost + " руб.");
+        }
+    });
+};
+</script>
+<body>
+{% csrf_token %}
+<h1>Результат расчета</h1>
+<option value="" disabled selected>Выберите материал</option>
+<select name="material" id="material" onchange="updateTotalCost();">
+    {% for material in materials %}
+    <option value="{{ material.0 }}:{{ material.1 }}">{{ material.0 }}, {{ material.1 }} мм</option>
+    {% endfor %}
+</select>
+<div>
+    <label for="total_cost">Полная стоимость изготовления детали:</label>
+    <label id="total_cost">{{ total_cost }} руб.</label>
+</div>
+</body>
+</html>

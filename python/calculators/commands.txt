@@ -1,0 +1,9 @@
+python manage.py runserver
+python manage.py migrate
+python manage.py makemigrations
+python manage.py startapp stl_calc
+git push heroku main
+heroku logs --tail
+heroku restart
+pip freeze -l > requirements.txt
+psycopg2==2.8.6
