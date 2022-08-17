@@ -1,4 +1,4 @@
-## Django REST framework приложение
+# Django REST framework приложение
 
 Создать Django REST framework приложение, с переопределённым пользователем и списком организаций в которых он состоит.
 
