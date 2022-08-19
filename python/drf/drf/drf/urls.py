@@ -10,5 +10,6 @@ router.register(r'organizations', views.OrganizationViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('api/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('admin/', admin.site.urls),
 ]
