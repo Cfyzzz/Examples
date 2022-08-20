@@ -6,13 +6,13 @@ from api.models import CustomUser, Organization
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'surname', 'phone', 'organizations']
+        fields = ['id', 'email', 'name', 'surname', 'phone', 'organizations']
 
 
 class OrganizationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Organization
-        fields = ['name', 'description']
+        fields = ['id', 'name', 'description']
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -22,7 +22,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'username', 'email', 'password')
+        fields = ('id', 'email', 'password')
         extra_kwargs = {'password': {'write_only': True}}
 
 

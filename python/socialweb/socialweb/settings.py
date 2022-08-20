@@ -13,10 +13,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'nmm5g4pvclgtjp(2i-o%=$)&4gw^ho_rjs*^&216+g0%ne(^m5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'https://fast-brushlands-89042.herokuapp.com/',
+    '127.0.0.1'
 ]
 
 
