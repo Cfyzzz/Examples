@@ -6,7 +6,7 @@ from api.models import CustomUser, Organization
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'name', 'surname', 'phone', 'organizations']
+        fields = ['id', 'email', 'avatar', 'name', 'surname', 'phone', 'organizations']
 
 
 class OrganizationSerializer(serializers.HyperlinkedModelSerializer):
