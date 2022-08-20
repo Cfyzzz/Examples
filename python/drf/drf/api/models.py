@@ -3,6 +3,7 @@ from secrets import token_urlsafe
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.core import validators
 from django.db import models
+from django_resized import ResizedImageField
 
 from api.managers import CustomUserManager
 
@@ -25,7 +26,7 @@ class CustomUser(AbstractBaseUser):
     surname = models.CharField(max_length=50, blank=True)
     name = models.CharField(max_length=50, blank=True)
     phone = models.CharField(max_length=20, blank=True)
-    avatar = models.ImageField('Аватар', upload_to=user_directory_path, blank=True)
+    avatar = ResizedImageField('Аватар', size=[200, 200], upload_to=user_directory_path, blank=True)
     organizations = models.ManyToManyField(Organization, blank=True)
     email = models.EmailField(
         validators=[validators.validate_email],
@@ -44,17 +45,11 @@ class CustomUser(AbstractBaseUser):
         return self.email
 
     def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
         return True
 
     def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
         return True
 
     @property
     def is_staff(self):
-        "Is the user a member of staff?"
-        # Simplest possible answer: All admins are staff
         return self.is_admin
